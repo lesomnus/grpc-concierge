@@ -1,0 +1,12 @@
+{
+  "name": "grpc-concierge",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc && vite build"
+  },
+  "author": "",
+  "license": "ISC"
+}

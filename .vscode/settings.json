@@ -1,0 +1,16 @@
+{
+	"files.readonlyInclude": {
+		"pakcage-lock.json": true,
+		"src/pb/*.ts": true,
+		"packages/*/dist/**": true,
+	},
+	"[javascript]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[typescript]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	}
+}
