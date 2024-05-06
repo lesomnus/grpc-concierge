@@ -1,6 +1,4 @@
-import { RpcOptions, UnaryCall } from '@protobuf-ts/runtime-rpc'
-
-export type Maybe<T> = T | undefined
+import type { RpcOptions, UnaryCall } from '@protobuf-ts/runtime-rpc'
 
 export type UnaryFn<I extends object = object, O extends object = object> = (
 	input: I,

@@ -1,5 +1,5 @@
 {
-	"name": "grpc-concierge",
+	"name": "lesomnus-grpc-concierge",
 	"build": {
 		"dockerfile": "Dockerfile",
 		"context": "."
@@ -8,7 +8,7 @@
 		"vscode": {
 			"extensions": [
 				"biomejs.biome",
-				"zixuanchen.vitest-explorer",
+				"vitest.explorer",
 				"zxh404.vscode-proto3",
 				"streetsidesoftware.code-spell-checker"
 			]

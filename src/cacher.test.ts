@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { MockTransport } from './transport'
 import { Cacher } from './cacher'
+import { MockTransport } from './transport'
 
-import { EchoServer, EchoClient, Quotes } from '@test/echo'
+import { EchoClient, EchoServer, Quotes } from './echo'
 
 describe('Cacher', () => {
 	it('returns cached value on cache hit', async () => {

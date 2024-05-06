@@ -1,16 +1,15 @@
-import {
-	UnaryCall,
-	ServerStreamingCall,
+import type {
 	ClientStreamingCall,
 	DuplexStreamingCall,
 	MethodInfo,
-	RpcOptions,
+	ServerStreamingCall,
+	UnaryCall,
 } from '@protobuf-ts/runtime-rpc'
 
-import { Message } from './pb/echo'
-import { IEchoClient } from './pb/echo.client'
+import type { Message } from './pb/echo'
+import type { IEchoClient } from './pb/echo.client'
 
-import { makeUnary, deferUnary } from '../../core/src/rpc'
+import { deferUnary, makeUnary } from '~/rpc'
 
 export class EchoServer implements IEchoClient {
 	hello(input: Message): UnaryCall<Message, Message> {

@@ -9,7 +9,7 @@ __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)" # Directory where this scr
 __root="$(cd "$(dirname "${__dir}")" && pwd)"         # Root directory of project.
 
 
-pb_root="${__root}/packages/echo/src/pb"
+pb_root="${__root}/src/echo/pb"
 cd "${pb_root}"
 rm *.ts || true
 npx protoc \

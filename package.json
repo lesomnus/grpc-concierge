@@ -1,27 +1,57 @@
 {
 	"name": "grpc-concierge",
+	"version": "1.0.0",
+	"description": "",
 	"type": "module",
-	"workspaces": [
-		"packages/*"
-	],
-	"scripts": {
-		"build": "npm run build -ws",
-		"test": "vitest",
-		"coverage": "vitest run --coverage"
+	"files": ["dist", "!dist/echo", "src", "!src/echo", "!src/*.test.ts"],
+	"main": "./dist/main.cjs.js",
+	"module": "./dist/main.es.js",
+	"exports": {
+		".": {
+			"require": "./dist/main.cjs.js",
+			"import": "./dist/main.es.js",
+			"types": "./dist/index.d.ts"
+		},
+		"./react": {
+			"require": "./dist/react.cjs.js",
+			"import": "./dist/react.es.js",
+			"types": "./dist/react/index.d.ts"
+		}
 	},
+	"scripts": {
+		"build": "tsc && vite build",
+		"test": "vitest",
+		"coverage": "vitest run --coverage",
+		"check": "biome check --apply ."
+	},
+	"author": {
+		"name": "Seunghyun Hwang",
+		"email": "lesomnus@gmail.com"
+	},
+	"license": "ISC",
 	"devDependencies": {
-		"@biomejs/biome": "^1.5.2",
-		"@protobuf-ts/plugin": "^2.9.3",
-		"@vitest/coverage-v8": "^1.2.1",
-		"@vitest/ui": "^1.2.1",
+		"@biomejs/biome": "^1.7.2",
+		"@protobuf-ts/grpc-transport": "^2.9.4",
+		"@protobuf-ts/runtime-rpc": "^2.0.0",
+		"@testing-library/jest-dom": "^6.4.4",
+		"@testing-library/react": "^15.0.6",
+		"@testing-library/user-event": "^14.5.2",
+		"@types/react": "^18.3.1",
+		"@vitejs/plugin-react": "^4.2.1",
+		"@vitest/coverage-v8": "^1.6.0",
+		"@vitest/ui": "^1.6.0",
 		"jsdom": "^24.0.0",
-		"typescript": "^5.3.3",
-		"vite": "^5.0.12",
-		"vite-plugin-dts": "^3.7.1",
-		"vitest": "^1.2.1"
+		"react": "18.x",
+		"typescript": "^5.4.5",
+		"vite": "^5.2.11",
+		"vite-plugin-dts": "^3.9.0",
+		"vite-tsconfig-paths": "^4.3.2",
+		"vitest": "^1.6.0"
 	},
 	"dependencies": {
-		"@protobuf-ts/grpc-transport": "^2.9.3",
-		"@protobuf-ts/runtime-rpc": "^2.9.3"
+		"@protobuf-ts/runtime-rpc": "^2.0.0"
+	},
+	"optionalDependencies": {
+		"react": "^18.0.0"
 	}
 }

@@ -1,13 +1,13 @@
-import {
+import type {
 	MethodInfo,
 	NextUnaryFn,
 	RpcInterceptor,
 	RpcOptions,
-	UnaryCall,
 } from '@protobuf-ts/runtime-rpc'
+import { UnaryCall } from '@protobuf-ts/runtime-rpc'
 
-import { Maybe, RpcClient, UnaryInputOf } from './types'
 import { deferUnary } from './rpc'
+import type { RpcClient, UnaryInputOf } from './types'
 
 const neverAbort = new AbortController()
 
@@ -175,7 +175,7 @@ export class Hitchhiker<C extends RpcClient> implements RpcInterceptor {
 		options: RpcOptions,
 	): UnaryCall {
 		const hitch = (
-			this.#resolvers[method.localName] as Maybe<HitchResolver>
+			this.#resolvers[method.localName] as HitchResolver | undefined
 		)?.(input, options)
 		if (hitch === undefined) {
 			return next(method, input, options)

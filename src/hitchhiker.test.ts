@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, test } from 'vitest'
 import { Hitch, Hitchhiker } from './hitchhiker'
 import { MockTransport } from './transport'
 
-import { EchoServer, EchoClient, Quotes } from '@test/echo'
+import { EchoClient, EchoServer, Quotes } from './echo'
 
 class Counter {
 	count = 0

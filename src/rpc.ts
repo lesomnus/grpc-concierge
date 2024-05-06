@@ -1,14 +1,12 @@
-import {
+import type {
 	MethodInfo,
-	UnaryCall,
-	RpcOptions,
-	Deferred,
 	RpcMetadata,
+	RpcOptions,
 	RpcStatus,
-	RpcError,
 } from '@protobuf-ts/runtime-rpc'
+import { Deferred, RpcError, UnaryCall } from '@protobuf-ts/runtime-rpc'
 
-import { Status } from './status'
+import Codes from './codes'
 
 type Meta<I extends object = object, O extends object = object> = {
 	method?: MethodInfo<I, O>
@@ -34,7 +32,7 @@ export function makeUnary<O extends object = object, I extends object = object>(
 				message = `${message}: ${e.message}`
 			}
 
-			const err = new RpcError(message, Status.msg.INTERNAL)
+			const err = new RpcError(message, Codes.INTERNAL)
 			return Promise.reject(err)
 		})
 
@@ -44,7 +42,7 @@ export function makeUnary<O extends object = object, I extends object = object>(
 		input ?? ({} as I),
 		r.then(() => headers ?? {}),
 		r,
-		r.then(() => ({ code: Status.msg.OK, detail: '' })),
+		r.then(() => ({ code: Codes.OK, detail: '' })),
 		r.then(() => trailers ?? {}),
 	)
 }

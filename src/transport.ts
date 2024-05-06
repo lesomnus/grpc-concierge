@@ -1,18 +1,17 @@
-import {
+import type {
 	ClientStreamingCall,
 	DuplexStreamingCall,
 	MethodInfo,
-	RpcError,
 	RpcOptions,
 	RpcTransport,
 	ServerStreamingCall,
 	UnaryCall,
-	mergeRpcOptions,
 } from '@protobuf-ts/runtime-rpc'
+import { RpcError, mergeRpcOptions } from '@protobuf-ts/runtime-rpc'
 
-import { RpcClient, UnaryFn } from './types'
-import { Status } from './status'
+import Codes from './codes'
 import { deferUnary, makeUnary } from './rpc'
+import type { RpcClient, UnaryFn } from './types'
 
 export class TransportProxy implements RpcTransport {
 	constructor(
@@ -76,10 +75,7 @@ export class MockTransport implements RpcTransport {
 		}
 
 		return (): UnaryCall<I, O> => {
-			throw new RpcError(
-				'method not implemented',
-				Status.msg.UNIMPLEMENTED,
-			)
+			throw new RpcError('method not implemented', Codes.UNIMPLEMENTED)
 		}
 	}
 

@@ -1,8 +1,6 @@
 {
 	"files.readonlyInclude": {
-		"pakcage-lock.json": true,
-		"src/pb/*.ts": true,
-		"packages/*/dist/**": true,
+		"package-lock.json": true
 	},
 	"[javascript]": {
 		"editor.defaultFormatter": "biomejs.biome"
@@ -12,5 +10,12 @@
 	},
 	"[typescriptreact]": {
 		"editor.defaultFormatter": "biomejs.biome"
-	}
+	},
+	"[json]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[jsonc]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"typescript.tsdk": "node_modules/typescript/lib"
 }

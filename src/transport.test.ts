@@ -2,7 +2,7 @@ import { describe, expect, it, test } from 'vitest'
 
 import { MockTransport } from './transport'
 
-import { EchoServer, EchoClient, Quotes } from '@test/echo'
+import { EchoClient, EchoServer, Quotes } from './echo'
 
 describe('MockTransport', () => {
 	it('forwards inputs to target client', async () => {

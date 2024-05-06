@@ -5,7 +5,7 @@ export type {
 	UnaryOutputOf,
 } from './types'
 
-export { Status } from './status'
+export * from './codes'
 export {
 	deferUnary,
 	makeUnary,

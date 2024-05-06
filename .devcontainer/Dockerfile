@@ -6,9 +6,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 	&& apt-get install --no-install-recommends --yes \
 		clang-format
 
-RUN TMP_DIR=$(mktmp -d) \
-	cd $TMP_DIR \
-	&& curl -sSL -o a.tar.gz "https://github.com/yoheimuta/protolint/releases/download/v0.47.5/protolint_0.47.5_linux_$(dpkg --print-architecture).tar.gz" \
+RUN TMP_DIR=$(mktemp -d) \
+	&& cd $TMP_DIR \
+	&& curl -o a.tar.gz -L "https://github.com/yoheimuta/protolint/releases/download/v0.47.5/protolint_0.47.5_linux_$(dpkg --print-architecture).tar.gz" \
 	&& tar -xf a.tar.gz \
 	&& mv protolint /usr/local/bin/. \
 	&& rm -rf $TMP_DIR

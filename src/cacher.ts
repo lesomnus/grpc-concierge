@@ -1,14 +1,13 @@
-import {
+import type {
 	MethodInfo,
 	NextUnaryFn,
 	RpcInterceptor,
-	RpcMetadata,
 	RpcOptions,
 	UnaryCall,
 } from '@protobuf-ts/runtime-rpc'
 
-import { Maybe, RpcClient, UnaryInputOf, UnaryOutputOf } from './types'
 import { makeUnary } from './rpc'
+import type { RpcClient, UnaryInputOf, UnaryOutputOf } from './types'
 
 class Cache<T> {
 	constructor(public value?: T) {}
@@ -68,7 +67,7 @@ export class Cacher<C extends RpcClient> implements RpcInterceptor {
 		options: RpcOptions,
 	): UnaryCall<object, object> {
 		const cache = (
-			this.#resolvers[method.localName] as Maybe<CacheResolver>
+			this.#resolvers[method.localName] as CacheResolver | undefined
 		)?.(input, options)
 		if (cache?.value !== undefined) {
 			return makeUnary(cache.value, {
