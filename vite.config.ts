@@ -1,9 +1,8 @@
 import { resolve } from 'node:path'
 
-import { defineConfig } from 'vitest/config'
-
 import dts from 'vite-plugin-dts'
 import tsconfigPaths from 'vite-tsconfig-paths'
+import { defineConfig } from 'vitest/config'
 
 import thisPackage from './package.json'
 
@@ -29,7 +28,7 @@ export default defineConfig({
 		},
 		rollupOptions: {
 			external: [
-				...Object.keys(thisPackage.dependencies),
+				...Object.keys(thisPackage.peerDependencies),
 				...Object.keys(thisPackage.optionalDependencies),
 			],
 		},
