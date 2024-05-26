@@ -1,4 +1,4 @@
-const Codes = (() => {
+export const Codes = (() => {
 	const c = [
 		'OK',
 		'CANCELLED',

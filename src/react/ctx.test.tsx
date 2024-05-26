@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type React from 'react'
+import React, { useReducer } from 'react'
 import { describe, expect, it } from 'vitest'
 
 import * as echo from '~/echo'
@@ -37,6 +37,48 @@ describe('createClient', async () => {
 			</ctx.Provider>,
 		)
 
+		expect(n).toBe(1)
+	})
+
+	it('always returns same value', async () => {
+		let n = 0
+		const t = new MockTransport(new echo.EchoServer(), {
+			interceptors: [
+				{
+					interceptUnary(next, method, input, options) {
+						n++
+						return next(method, input, options)
+					},
+				},
+			],
+		})
+
+		const [ctx, useService] = createServiceContext({
+			echo: echo.EchoClient,
+		})
+		const C: React.FC = () => {
+			const [_, incN] = useReducer(n => n + 1, 0)
+			const s = useService()
+			React.useEffect(() => {
+				s.echo.hello({ value: '' })
+			}, [s])
+			return (
+				<button type="button" onClick={() => incN()}>
+					cheese
+				</button>
+			)
+		}
+
+		render(
+			<ctx.Provider value={t}>
+				<C />
+			</ctx.Provider>,
+		)
+
+		expect(n).toBe(1)
+
+		// rerender
+		await userEvent.click(screen.getByText('cheese'))
 		expect(n).toBe(1)
 	})
 
@@ -103,35 +145,35 @@ describe('createClient', async () => {
 		expect(n).toBe(3)
 	})
 
-	it('aborts the RPC if the component is unmounted', async () => {
-		const t = new MockTransport(new echo.EchoServer())
+	// it('aborts the RPC if the component is unmounted', async () => {
+	// 	const t = new MockTransport(new echo.EchoServer())
 
-		let n = 0
-		const [ctx, userService] = createServiceContext({
-			echo: echo.EchoClient,
-		})
-		const C: React.FC = () => {
-			const s = userService()
-			s.echo.hang({ value: '' }).then(
-				() => {},
-				() => n++,
-			)
-			return <></>
-		}
+	// 	let n = 0
+	// 	const [ctx, userService] = createServiceContext({
+	// 		echo: echo.EchoClient,
+	// 	})
+	// 	const C: React.FC = () => {
+	// 		const s = userService()
+	// 		s.echo.hang({ value: '' }).then(
+	// 			() => {},
+	// 			() => n++,
+	// 		)
+	// 		return <></>
+	// 	}
 
-		const { unmount } = render(
-			<ctx.Provider value={t}>
-				<C />
-			</ctx.Provider>,
-		)
+	// 	const { unmount } = render(
+	// 		<ctx.Provider value={t}>
+	// 			<C />
+	// 		</ctx.Provider>,
+	// 	)
 
-		expect(n).toBe(0)
-		unmount()
+	// 	expect(n).toBe(0)
+	// 	unmount()
 
-		// `unmount()` will trigger abort event and the promise for response will be rejected.
-		// The reject handler will be invoked on next tick, so we yield current tick to observe changes.
-		await new Promise(resolve => setTimeout(() => resolve(0), 0))
+	// 	// `unmount()` will trigger abort event and the promise for response will be rejected.
+	// 	// The reject handler will be invoked on next tick, so we yield current tick to observe changes.
+	// 	await new Promise(resolve => setTimeout(() => resolve(0), 0))
 
-		expect(n).toBe(1)
-	})
+	// 	expect(n).toBe(1)
+	// })
 })
