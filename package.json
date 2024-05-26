@@ -1,6 +1,6 @@
 {
 	"name": "grpc-concierge",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "",
 	"type": "module",
 	"files": ["dist", "!dist/echo", "src", "!src/echo", "!src/*.test.ts"],

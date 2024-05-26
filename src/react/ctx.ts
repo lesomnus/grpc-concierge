@@ -117,6 +117,9 @@ export function createServiceContext<C extends ClientConstructorSet>(
 									return
 								}
 
+								interceptedClientsRef.current = {
+									...interceptedClientsRef.current,
+								}
 								render()
 							})
 							.catch(() => {})

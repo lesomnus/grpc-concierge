@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import React, { useReducer } from 'react'
+import type React from 'react'
+import { useEffect, useReducer } from 'react'
 import { describe, expect, it } from 'vitest'
 
 import * as echo from '~/echo'
@@ -40,48 +41,6 @@ describe('createClient', async () => {
 		expect(n).toBe(1)
 	})
 
-	it('always returns same value', async () => {
-		let n = 0
-		const t = new MockTransport(new echo.EchoServer(), {
-			interceptors: [
-				{
-					interceptUnary(next, method, input, options) {
-						n++
-						return next(method, input, options)
-					},
-				},
-			],
-		})
-
-		const [ctx, useService] = createServiceContext({
-			echo: echo.EchoClient,
-		})
-		const C: React.FC = () => {
-			const [_, incN] = useReducer(n => n + 1, 0)
-			const s = useService()
-			React.useEffect(() => {
-				s.echo.hello({ value: '' })
-			}, [s])
-			return (
-				<button type="button" onClick={() => incN()}>
-					cheese
-				</button>
-			)
-		}
-
-		render(
-			<ctx.Provider value={t}>
-				<C />
-			</ctx.Provider>,
-		)
-
-		expect(n).toBe(1)
-
-		// rerender
-		await userEvent.click(screen.getByText('cheese'))
-		expect(n).toBe(1)
-	})
-
 	it('rendered when dependents RPC is invoked', async () => {
 		const t = new MockTransport(new echo.EchoServer())
 
@@ -101,9 +60,12 @@ describe('createClient', async () => {
 			},
 		)
 		const C: React.FC = () => {
+			const [_, incN] = useReducer(n => n + 1, 0)
 			const s = useService()
-			s.echo1.hello({ value: '' })
-			n++
+			useEffect(() => {
+				s.echo1.hello({ value: '' })
+				n++
+			}, [s])
 			return (
 				<>
 					<button
@@ -120,6 +82,9 @@ describe('createClient', async () => {
 						type="button"
 						onClick={() => s.echo2.hello({ value: '' })}>
 						echo2.Hello
+					</button>
+					<button type="button" onClick={() => incN()}>
+						not a dependency
 					</button>
 				</>
 			)
@@ -142,6 +107,10 @@ describe('createClient', async () => {
 
 		// Across the client.
 		await userEvent.click(screen.getByText('echo2.Hello'))
+		expect(n).toBe(3)
+
+		// Not a dependency.
+		await userEvent.click(screen.getByText('not a dependency'))
 		expect(n).toBe(3)
 	})
 
