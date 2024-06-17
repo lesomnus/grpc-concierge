@@ -1,6 +1,6 @@
 {
 	"name": "grpc-concierge",
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"description": "",
 	"type": "module",
 	"files": ["dist", "!dist/echo", "src", "!src/echo", "!src/*.test.ts"],
@@ -22,7 +22,7 @@
 		"build": "tsc && vite build",
 		"test": "vitest",
 		"coverage": "vitest run --coverage",
-		"check": "biome check --apply ."
+		"check": "biome check --write ."
 	},
 	"author": {
 		"name": "Seunghyun Hwang",
@@ -30,8 +30,9 @@
 	},
 	"license": "Apache-2.0",
 	"devDependencies": {
-		"@biomejs/biome": "^1.7.3",
+		"@biomejs/biome": "^1.8.1",
 		"@protobuf-ts/grpc-transport": "^2.9.4",
+		"@protobuf-ts/plugin": "^2.9.4",
 		"@protobuf-ts/runtime-rpc": "^2.0.0",
 		"@testing-library/jest-dom": "^6.4.4",
 		"@testing-library/react": "^15.0.6",
@@ -53,5 +54,8 @@
 	},
 	"optionalDependencies": {
 		"react": "^18.0.0"
+	},
+	"dependencies": {
+		"events": "^3.3.0"
 	}
 }

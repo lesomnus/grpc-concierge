@@ -6,8 +6,15 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"include": ["src", ".devcontainer", "*.json", "*.cjs", "*.[j|t]s"],
-		"ignore": ["src/echo/pb/*"],
+		"include": [
+			".devcontainer/",
+			".vscode/",
+			"scripts/",
+			"src/",
+			"*.json",
+			"*.[j|cj|t]s"
+		],
+		"ignore": ["src/echo/pb", "dist"],
 		"ignoreUnknown": true
 	},
 	"organizeImports": {
@@ -28,8 +35,7 @@
 				"useMediaCaption": "off"
 			},
 			"style": {
-				"noParameterAssign": "off",
-				"useNodejsImportProtocol": "off"
+				"noParameterAssign": "off"
 			}
 		}
 	},
@@ -45,7 +51,7 @@
 		"formatter": {
 			"quoteStyle": "single",
 			"semicolons": "asNeeded",
-			"trailingComma": "all",
+			"trailingCommas": "all",
 			"quoteProperties": "preserve",
 			"bracketSpacing": true,
 			"bracketSameLine": true,

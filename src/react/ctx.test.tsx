@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type React from 'react'
+import React from 'react'
 import { useEffect, useReducer } from 'react'
 import { describe, expect, it } from 'vitest'
 
@@ -28,7 +28,9 @@ describe('createClient', async () => {
 		})
 		const C: React.FC = () => {
 			const s = useService()
-			s.echo.hello({ value: '' })
+			React.useEffect(() => {
+				s.echo.hello({ value: '' })
+			}, [s])
 			return <></>
 		}
 
@@ -112,6 +114,57 @@ describe('createClient', async () => {
 		// Not a dependency.
 		await userEvent.click(screen.getByText('not a dependency'))
 		expect(n).toBe(3)
+	})
+
+	it('rendered when dependents RPC is invoked in the another component', async () => {
+		const t = new MockTransport(new echo.EchoServer())
+
+		const count = {
+			echo1: 0,
+			echo2: 0,
+		}
+		const [ctx, useService] = createServiceContext(
+			{
+				echo1: echo.EchoClient,
+				echo2: echo.EchoClient,
+			},
+			{
+				echo1: {
+					hello: {
+						echo2: ['hola'],
+					},
+				},
+			},
+		)
+
+		type Props = { name: 'echo1' | 'echo2' }
+		const C: React.FC<Props> = ({ name }) => {
+			const s = useService()
+			useEffect(() => {
+				s[name].hello({ value: '' })
+				count[name]++
+			}, [s, name])
+			return (
+				<button
+					type="button"
+					onClick={() => s[name].hola({ value: '' })}>
+					{`${name}.hola`}
+				</button>
+			)
+		}
+
+		render(
+			<ctx.Provider value={t}>
+				<C name="echo1" />
+				<C name="echo2" />
+			</ctx.Provider>,
+		)
+		expect(count.echo1).toBe(1)
+		expect(count.echo2).toBe(1)
+
+		await userEvent.click(screen.getByText('echo2.hola'))
+		expect(count.echo1).toBe(2)
+		expect(count.echo2).toBe(1)
 	})
 
 	// it('aborts the RPC if the component is unmounted', async () => {

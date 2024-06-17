@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events'
 import type { RpcInterceptor, RpcTransport } from '@protobuf-ts/runtime-rpc'
 import React from 'react'
 
@@ -35,117 +36,151 @@ type DependencyMapDecayed = {
 	}
 }
 
+function createLocalClientSet<C extends ClientConstructorSet>(
+	clients: C,
+	deps: DependencyMap<C>,
+	{
+		notifier,
+		transport,
+		listener,
+		isMounted,
+		hookedRpcs,
+	}: {
+		notifier: EventEmitter
+		transport: RpcTransport
+		listener: () => void
+		isMounted: () => boolean
+		hookedRpcs: React.MutableRefObject<Map<string, Set<string>>>
+	},
+): Record<string, RpcClient> {
+	const localClients: Record<string, RpcClient> = {}
+	const abortController = new AbortController()
+	for (const [targetSvcName, Client] of Object.entries(clients)) {
+		const interceptors: RpcInterceptor[] = []
+		const trackedRpcs = new Set()
+
+		const targetSvcDeps = (deps as DependencyMapDecayed)[targetSvcName]
+		if (targetSvcDeps !== undefined) {
+			// tracker
+			interceptors.push({
+				interceptUnary(next, method, input, options) {
+					const { localName } = method
+					if (!trackedRpcs.has(localName)) {
+						trackedRpcs.add(localName)
+
+						const targetRpcDeps = targetSvcDeps[localName] ?? {}
+
+						for (const [
+							sourceSvcName,
+							sourceRpcNames,
+						] of Object.entries(targetRpcDeps)) {
+							let hookedRpcNames =
+								hookedRpcs.current.get(sourceSvcName)
+							if (hookedRpcNames === undefined) {
+								hookedRpcNames = new Set<string>()
+								hookedRpcs.current.set(
+									sourceSvcName,
+									hookedRpcNames,
+								)
+							}
+
+							for (const name of sourceRpcNames) {
+								if (hookedRpcNames.has(name)) continue
+								hookedRpcNames.add(name)
+								notifier.on(
+									`${sourceSvcName}.${name}`,
+									listener,
+								)
+							}
+						}
+					}
+
+					return next(method, input, options)
+				},
+			})
+		}
+
+		// trigger
+		interceptors.push({
+			interceptUnary(next, method, input, options) {
+				const c = next(method, input, options)
+				c.headers
+					.then(h => {
+						if (!isMounted()) {
+							return
+						}
+						if (h.status === '304') {
+							// Does not trigger in the case of cache response.
+							return
+						}
+
+						notifier.emit(`${targetSvcName}.${method.localName}`)
+					})
+					.catch(() => {})
+
+				return c
+			},
+		})
+
+		const localTransport = new TransportProxy(transport, {
+			interceptors,
+			abort: abortController.signal,
+		})
+		localClients[targetSvcName] = new Client(localTransport)
+	}
+
+	return localClients
+}
+
 export function createServiceContext<C extends ClientConstructorSet>(
 	clients: C,
 	deps: DependencyMap<C> = {},
 ) {
 	const ctx = React.createContext<RpcTransport | null>(null)
+	const notifier = new EventEmitter()
 	const useService = () => {
-		const v = React.useContext(ctx)
-		if (v === null) {
+		const transport = React.useContext(ctx)
+		if (transport === null) {
 			throw new Error('')
 		}
 
-		const interceptedClientsRef = React.useRef<Record<
-			string,
-			RpcClient
-		> | null>(null)
+		const [rendered, render] = React.useReducer(v => v + 1, 0)
+		const listener = React.useCallback(() => render(), [])
 
-		const render = hooks.useRender()
 		const isMounted = hooks.useMountState()
 		const hookedRpcs = React.useRef(new Map<string, Set<string>>())
-		const abortController = React.useRef(new AbortController())
-		if (interceptedClientsRef.current === null) {
-			interceptedClientsRef.current = {}
-			for (const [targetSvcName, Client] of Object.entries(clients)) {
-				const interceptors: RpcInterceptor[] = []
 
-				const targetSvcDeps = (deps as DependencyMapDecayed)[
-					targetSvcName
-				]
-				if (targetSvcDeps !== undefined) {
-					// tracker
-					interceptors.push({
-						interceptUnary(next, method, input, options) {
-							// TODO: skip if hook already made.
-							const targetRpcDeps =
-								targetSvcDeps[method.localName] ?? {}
+		const isMountingRef = React.useRef(false)
+		React.useEffect(() => {
+			isMountingRef.current = true
+		}, [])
 
-							for (const [
-								sourceSvcName,
-								sourceRpcNames,
-							] of Object.entries(targetRpcDeps)) {
-								const sourceHookedRpcNames =
-									hookedRpcs.current.get(sourceSvcName) ??
-									new Set<string>()
-
-								hookedRpcs.current.set(
-									sourceSvcName,
-									sourceHookedRpcNames,
-								)
-
-								for (const name of sourceRpcNames) {
-									sourceHookedRpcNames.add(name)
-								}
-							}
-
-							return next(method, input, options)
-						},
-					})
-				}
-
-				// trigger
-				interceptors.push({
-					interceptUnary(next, method, input, options) {
-						const c = next(method, input, options)
-						c.headers
-							.then(h => {
-								if (!isMounted()) {
-									return
-								}
-								if (h.status === '304') {
-									// Does not trigger in the case of cache response.
-									return
-								}
-
-								const hookedRpcNames =
-									hookedRpcs.current.get(targetSvcName)
-								if (
-									hookedRpcNames?.has(method.localName) !==
-									true
-								) {
-									return
-								}
-
-								interceptedClientsRef.current = {
-									...interceptedClientsRef.current,
-								}
-								render()
-							})
-							.catch(() => {})
-
-						return c
-					},
-				})
-
-				const transport = new TransportProxy(v, {
-					interceptors,
-					abort: abortController.current.signal,
-				})
-				interceptedClientsRef.current[targetSvcName] = new Client(
+		const createC = React.useCallback(
+			() =>
+				createLocalClientSet(clients, deps, {
+					notifier,
 					transport,
-				)
+					listener,
+					isMounted,
+					hookedRpcs,
+				}),
+			[clients, transport, deps, listener, isMounted],
+		)
+
+		const c = React.useMemo(() => {
+			rendered
+			return createC()
+		}, [rendered, createC])
+
+		React.useEffect(() => {
+			return () => {
+				for (const [svcName, rpcName] of hookedRpcs.current) {
+					notifier.off(`${svcName}.${rpcName}`, listener)
+				}
 			}
-		}
+		}, [listener])
 
-		// React.useEffect(
-		// 	() => () => {
-		// 		abortController.current.abort()
-		// 	},
-		// 	[],
-		// )
-
-		return interceptedClientsRef.current as {
+		return c as {
 			[K in keyof C]: InstanceType<C[K]>
 		}
 	}
